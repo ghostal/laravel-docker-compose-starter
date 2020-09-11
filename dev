@@ -1,0 +1,46 @@
+#!/bin/bash
+
+case $1 in
+  "init")
+    docker-compose run --rm -u 1000:1000 app composer create-project --prefer-dist laravel/laravel .
+    ;;
+  "up")
+    docker-compose up -d
+    ;;
+  "stop")
+    docker-compose stop
+    ;;
+  "down")
+    docker-compose down
+    ;;
+  "app")
+    docker-compose exec -u 1000:1000 app bash
+    ;;
+  "node")
+    docker-compose run --rm node "${@:2}"
+    ;;
+  "db")
+    docker-compose exec db mysql -u root -p app
+    ;;
+  *)
+    __usage="
+\e[1m\e[38;5;150mghostaldev shortcut tool\e[0m for docker-compose \e[38;5;100mv0.0.1\e[0m
+
+\e[38;5;142mUsage:\e[0m
+  dev [<command_name>]
+
+\e[38;5;142mArguments:\e[0m
+  \e[38;5;130minit\e[0m    Set up the initial Laravel install (once per project)
+
+  \e[38;5;130mup\e[0m      Shortcut for docker-compose up -d
+  \e[38;5;130mstop\e[0m    Shortcut for docker-compose stop
+  \e[38;5;130mdown\e[0m    Shortcut for docker-compose down
+
+  \e[38;5;130mapp\e[0m     Start a bash shell on the app machine (for using composer,
+          artisan, etc)
+  \e[38;5;130mnode\e[0m    Run commands on the node container (e.g. dev node npm i)
+  \e[38;5;130mdb\e[0m      Start a mysql client CLI on the database container
+"
+    printf "$__usage"
+    ;;
+esac

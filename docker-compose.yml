@@ -1,0 +1,44 @@
+version: "3"
+services:
+  app:
+    build:
+      context: .docker/app
+      dockerfile: Dockerfile
+    volumes:
+      - ./laravel/:/var/www/html
+      # The following volume is for the composer cache (assuming we use composer as devuser - see README.md)
+      - ~/.composer_cache:/home/devuser/.composer
+  sslproxy:
+    build: .docker/sslproxy
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - app:proxyapp
+  db:
+    ports:
+      - "3306:3306"
+    image: mariadb:10.4
+    environment:
+      - MYSQL_DATABASE=app
+      - MYSQL_USER=appuser
+      - MYSQL_PASSWORD=appsecret
+      - MYSQL_ROOT_PASSWORD=rootsecret
+  node:
+    image: node
+    volumes:
+      - ./laravel/:/usr/src/app
+    user: node
+    command: npm run watch
+    working_dir: /usr/src/app
+  redis:
+    image: redis
+  echo_server:
+    build:
+      context: .docker/laravel-echo
+      dockerfile: Dockerfile
+    volumes:
+      - ./echo-server/:/usr/src/app
+    user: node
